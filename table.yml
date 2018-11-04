@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  vars:
+    swname: rdl-sw01
+  tasks:
+    - name: gen from config
+      aos6_vlan_facts:
+        config: "{{lookup('file','{{swname}}.cfg')}}"
+
+    - name: update port table in confluence
+      debug:
+        msg: "{{switch_config}}"
+#        msg: "{{switch_config.ports|sort_by_port}}"
+#        msg: "{{lookup('template','vlan-table.html.j2')}}"
+
+    - copy:
+        dest: /tmp/vt.html
+        content: "<table>{{lookup('template','vlan-table.html.j2')}}</table>"

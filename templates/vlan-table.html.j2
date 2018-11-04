@@ -1,0 +1,32 @@
+{% macro format_vlan(id) -%}
+    {{id|string}}{% if id|string in switch_config.props.vlans|default({}) -%}
+		&nbsp;({{switch_config.props.vlans[id|string]}}){% endif %}
+{%- endmacro %}
+<tbody>
+	<tr>
+		<th colspan="2">&nbsp;</th>
+		<th colspan="{{switch_config.props.gvrp_enabled | default(False) | ternary(3,2)}}">VLAN</th>
+	</tr>
+	<tr>
+		<th>#</th>
+		<th>Port</th>
+		<th>PVID</th>
+		<th>dot1q</th>
+{% if switch_config.props.gvrp_enabled | default(False) %}
+		<th>GVRP</th>
+{% endif %}
+	</tr>
+	{% for z in switch_config.ports|sort_by_port -%}
+	{% set num=z[0] %}{% set i=z[1] %}{% set vlan=z[1].vlan|default({}) -%}
+	<tr>
+		<td>{{num}}</td>
+		<td>{{i.name|default("&nbsp;")}}</td>
+		<td>{{format_vlan(vlan.pvid|default('1'))}}</td>
+		<td>{%for v in (vlan.dot1q|default([])|map('int')|list + [vlan.pvid|default(1)])|sort%}{% if loop.index0!=0 %}, {%endif%}{{format_vlan(v)}}{%endfor%}</td>
+{% if switch_config.props.gvrp_enabled | default(False) %}
+		<td>{% if vlan.gvrp|default(False) %}
+	<img class="emoticon emoticon-tick" src="{{confluence.url}}/images/icons/emoticons/check.svg" border="0" />{% else %}&nbsp;{% endif %}</td>
+{% endif %}
+	</tr>
+	{% endfor %}
+</tbody>

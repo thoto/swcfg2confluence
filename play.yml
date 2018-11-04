@@ -1,0 +1,32 @@
+---
+- hosts: alcatel_switches
+  vars_files:
+    - vars/private.yml
+  gather_facts: no
+  tasks:
+    - name: gen from config
+      aos6_vlan_facts:
+        config: "{{lookup('file','{{swname}}.cfg')}}"
+      delegate_to: "{{jumphost|default('localhost')}}"
+
+    - name: update port table in confluence
+      confluence_edit_code:
+        user: "{{confluence.user}}"
+        password: "{{confluence.password}}"
+        url: "{{confluence.url}}"
+        re_start: '<h2>Switch {{swname}}</h2><h3>Fancy Port Tabelle</h3><table>'
+        re_end: '</table>'
+        page_id: "{{confluence_page}}"
+        data: "{{lookup('template','vlan-table.html.j2')}}"
+      delegate_to: "{{jumphost|default('localhost')}}"
+
+    - name: push raw configuration dump into confluence
+      confluence_edit_code:
+        user: "{{confluence.user}}"
+        password: "{{confluence.password}}"
+        url: "{{confluence.url}}"
+        re_start: '<ac:parameter ac:name="title">Running Config Switch {{swname}}</ac:parameter>(.*)CDATA\['
+        re_end: ']]>'
+        page_id: "{{confluence_page}}"
+        data: "{{lookup('file','{{swname}}.cfg')}}"
+      delegate_to: "{{jumphost|default('localhost')}}"
