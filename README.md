@@ -47,5 +47,4 @@ confluence:
 
 ## TODO
 
-* make `confluence_edit_code` idempotent and note changes
-* change example playbooks to run on ansible connection of network type
+* adapt to other switches
