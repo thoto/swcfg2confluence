@@ -28,6 +28,7 @@ def main():
         data=dict(type='str'),
         ))
     module = AnsibleModule(argument_spec=argument_spec)
+    changed=False
 
     base_url="%s/rest/api/content/%s"%(module.params['url'],
             module.params['page_id'])
@@ -55,23 +56,26 @@ def main():
         else 'foo'
 
     c=replace_content(b,data,module.params['re_start'],module.params['re_end'])
+
     if not c:
         module.fail_json(msg="section could not be found")
+    
+    if c != b:
+        changed=True
+        put_body=json.dumps({
+            'id': module.params['page_id'], 'title': a['title'], 'type': 'page',
+            "body":{"storage":{"value":c,"representation":"storage"},},
+            "version":{"number": a['version']['number']+1,
+                "message":"Beep. Auto update by thotos Ansible module. Boop."}
+            })
 
-    put_body=json.dumps({
-        'id': module.params['page_id'], 'title': a['title'], 'type': 'page',
-        "body":{"storage":{"value":c,"representation":"storage"},},
-        "version":{"number": a['version']['number']+1,
-            "message":"Beep. Auto update by thotos Ansible module. Boop."}
-        })
-
-
-    resp,info=fetch_url(module,base_url,method="PUT",
+        resp,info=fetch_url(module,base_url,method="PUT",
             data=put_body, headers={'Content-Type':"application/json"})
 
-    if info['status']!=200:
-        module.fail_json(msg="update content failed ... status:"+str(info['status']), info=info, resp=resp)
-    module.exit_json(msg=c)
+        if info['status']!=200:
+            module.fail_json(msg="update content failed. status:"+str(
+                info['status']), info=info, resp=resp)
+    module.exit_json(msg=c,changed=changed)
 
 
 if __name__ == '__main__':
