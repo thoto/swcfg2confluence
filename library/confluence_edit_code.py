@@ -25,12 +25,17 @@ def main():
         re_end=dict(type='str',required=True),
         # maybe default="<ac:plain-text-body><![CDATA[!" and "^]]>" ?
         page_id=dict(type='str',required=True),
+        ignore_whitespace=dict(type='bool', default=False),
         msg=dict(type='str',
             default="Beep. Auto update by thotos Ansible module. Boop."),
         data=dict(type='str'),
         ))
     module = AnsibleModule(argument_spec=arg_spec,supports_check_mode=True)
     changed = False
+
+    code_diff=(lambda x, y: re.sub('[ \n\t]','',x) != re.sub('[ \n\t]','',y)) \
+            if module.params['ignore_whitespace'] else \
+            (lambda x, y: x != y)
 
     base_url = "%s/rest/api/content/%s"%(module.params['url'],
             module.params['page_id'])
@@ -63,10 +68,10 @@ def main():
     if not c:
         module.fail_json(msg="section could not be found")
 
-    if c != b:
+    if code_diff(c, b):
         changed = True
 
-    if c != b and not module.check_mode:
+    if code_diff(c, b) and not module.check_mode:
         p_body = json.dumps({
             'id': module.params['page_id'], 'title': a['title'], 'type': 'page',
             "body":{"storage":{"value":c,"representation":"storage"},},

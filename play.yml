@@ -17,6 +17,7 @@
         re_start: '<h2>Switch {{swname}}</h2><h3>Fancy Port Tabelle</h3><table>'
         re_end: '</table>'
         page_id: "{{confluence_page}}"
+        ignore_whitespace: True
         data: "{{lookup('template','vlan-table.html.j2')}}"
       delegate_to: "{{jumphost|default('localhost')}}"
 

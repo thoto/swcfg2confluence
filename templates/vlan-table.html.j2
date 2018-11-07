@@ -2,6 +2,12 @@
     {{id|string}}{% if id|string in switch_config.props.vlans|default({}) -%}
 		&nbsp;({{switch_config.props.vlans[id|string]}}){% endif %}
 {%- endmacro %}
+<colgroup> <col /> <col /> <col /> <col />
+{% if switch_config.props.gvrp_enabled | default(False) -%}
+{# confluence automatically generates colgroups in web editor so we need
+   to include this to not break change detection #}
+ <col />
+{%- endif %} </colgroup>
 <tbody>
 	<tr>
 		<th colspan="2">&nbsp;</th>
@@ -25,7 +31,7 @@
 		<td>{%for v in (vlan.dot1q|default([])|map('int')|list + [vlan.pvid|default(1)])|sort%}{% if loop.index0!=0 %}, {%endif%}{{format_vlan(v)}}{%endfor%}</td>
 {% if switch_config.props.gvrp_enabled | default(False) %}
 		<td>{% if vlan.gvrp|default(False) %}
-	<img class="emoticon emoticon-tick" src="{{confluence.url}}/images/icons/emoticons/check.svg" border="0" />{% else %}&nbsp;{% endif %}</td>
+	<img class="emoticon emoticon-tick" src="{{(confluence|default({})).url|default('')}}/images/icons/emoticons/check.svg" border="0" />{% else %}&nbsp;{% endif %}</td>
 {% endif %}
 	</tr>
 	{% endfor %}
