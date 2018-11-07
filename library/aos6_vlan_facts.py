@@ -18,14 +18,13 @@ def deep_update(o, n):
 def push_port(ports,port,data):
     if str(port) not in ports:
         ports[str(port)]={}
-#        ports[str(port)]={"name":"",
-#                "vlan": {"pvid": 1, "dot1q":[], "gvrp": False}}
     deep_update(ports[str(port)],data)
     # ports={**ports,**{str(port):data}}
 
 def main():
     module = AnsibleModule(argument_spec=dict(
-        config=dict(type='str', aliases=['data'], required=True),))
+        config=dict(type='str', aliases=['data'], required=True),),
+        supports_check_mode=True)
 
     config=module.params['config']
 

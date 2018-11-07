@@ -16,8 +16,8 @@ def replace_content(c,insert,start_pattern,end_pattern):
 
 
 def main():
-    argument_spec = url_argument_spec()
-    argument_spec.update(dict(
+    arg_spec = url_argument_spec()
+    arg_spec.update(dict(
         url=dict(required=True),
         url_username=dict(type='str', aliases=['user']),
         url_password=dict(type='str', aliases=['password'], no_log=True),
@@ -25,16 +25,18 @@ def main():
         re_end=dict(type='str',required=True),
         # maybe default="<ac:plain-text-body><![CDATA[!" and "^]]>" ?
         page_id=dict(type='str',required=True),
+        msg=dict(type='str',
+            default="Beep. Auto update by thotos Ansible module. Boop."),
         data=dict(type='str'),
         ))
-    module = AnsibleModule(argument_spec=argument_spec)
-    changed=False
+    module = AnsibleModule(argument_spec=arg_spec,supports_check_mode=True)
+    changed = False
 
-    base_url="%s/rest/api/content/%s"%(module.params['url'],
+    base_url = "%s/rest/api/content/%s"%(module.params['url'],
             module.params['page_id'])
     if 'user' in module.params:
         module.params['force_basic_auth']=True
-    resp,info=fetch_url(module,base_url+"?expand=body.storage,version",
+    resp, info = fetch_url(module,base_url+"?expand=body.storage,version",
             method="GET")
 
     if info['status']!=200:
@@ -46,8 +48,8 @@ def main():
         res = info.pop('body', '')
 
     try:
-        a=json.loads(res)
-        b=a['body']['storage']['value']
+        a = json.loads(res)
+        b = a['body']['storage']['value']
     except:
         module.fail_json(msg="invalid response from API")
 
@@ -55,26 +57,30 @@ def main():
         if 'data' in module.params and module.params['data'] \
         else 'foo'
 
-    c=replace_content(b,data,module.params['re_start'],module.params['re_end'])
+    c = replace_content(b, data, module.params['re_start'],
+            module.params['re_end'])
 
     if not c:
         module.fail_json(msg="section could not be found")
-    
+
     if c != b:
-        changed=True
-        put_body=json.dumps({
+        changed = True
+
+    if c != b and not module.check_mode:
+        p_body = json.dumps({
             'id': module.params['page_id'], 'title': a['title'], 'type': 'page',
             "body":{"storage":{"value":c,"representation":"storage"},},
             "version":{"number": a['version']['number']+1,
-                "message":"Beep. Auto update by thotos Ansible module. Boop."}
+                "message": module.params['msg']}
             })
 
-        resp,info=fetch_url(module,base_url,method="PUT",
-            data=put_body, headers={'Content-Type':"application/json"})
+        p_resp,p_info = fetch_url(module, base_url, method="PUT",
+            data=p_body, headers={'Content-Type':"application/json"})
 
-        if info['status']!=200:
+        if info['status'] != 200:
             module.fail_json(msg="update content failed. status:"+str(
                 info['status']), info=info, resp=resp)
+
     module.exit_json(msg=c,changed=changed)
 
 
