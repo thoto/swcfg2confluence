@@ -1,13 +1,20 @@
 ---
-- hosts: alcatel_switches
+- hosts: alcatel_switches, zyxel_switches
   vars_files:
     - vars/private.yml
   gather_facts: no
   tasks:
-    - name: gen from config
+    - name: gen from aos6 config
       aos6_vlan_facts:
         config: "{{lookup('file','{{swname}}.cfg')}}"
       delegate_to: "{{jumphost|default('localhost')}}"
+      when: inventory_hostname in groups['alcatel_switches']
+
+    - name: gen from zyxel config
+      zyxel_vlan_facts:
+        config: "{{lookup('file','{{swname}}.cfg')}}"
+      delegate_to: "{{jumphost|default('localhost')}}"
+      when: inventory_hostname in groups['zyxel_switches']
 
     - name: update port table in confluence
       confluence_edit_code:
@@ -31,3 +38,4 @@
         page_id: "{{confluence_page}}"
         data: "{{lookup('file','{{swname}}.cfg')}}"
       delegate_to: "{{jumphost|default('localhost')}}"
+      when: inventory_hostname in groups['alcatel_switches']

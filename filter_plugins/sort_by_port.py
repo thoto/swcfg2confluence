@@ -2,7 +2,7 @@ def sort_by_port(d):
     s={}
     x=[]
     for k,v in d.iteritems():
-        stack,port=k.split('/',1)
+        stack,port=k.split('/',1) if '/' in k else ('1',k)
         if int(stack) not in s:
             s[int(stack)]={}
         s[int(stack)][int(port)]=(k,v)

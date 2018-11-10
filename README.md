@@ -2,8 +2,8 @@
 
 ## Description
 
-This Ansible playbook pushes Alcatel Lucent AOS Release 6 (and later ZyXEL
-GS1920) configuration to Atlassian Confluence.
+This Ansible playbook pushes Alcatel Lucent AOS Release 6 ZyXEL GS1920
+configuration to Atlassian Confluence.
 
 ## How-To
 
@@ -21,6 +21,10 @@ localhost ansible_connection=local
 foo-sw01
 foo-sw02
 bar-sw01
+gs1920-sw01
+
+[zyxel_switches]
+gs1920-sw01
 
 [alcatel_switches]
 foo-sw01
@@ -47,4 +51,6 @@ confluence:
 
 ## TODO
 
-* adapt to other switches
+* write documentation for confluence module
+* add tagged frame type
+* add various other configuration properties beyond vlan configuration
