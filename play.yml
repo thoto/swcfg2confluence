@@ -21,7 +21,7 @@
         user: "{{confluence.user}}"
         password: "{{confluence.password}}"
         url: "{{confluence.url}}"
-        re_start: '<h2>Switch {{swname}}</h2><h3>Fancy Port Tabelle</h3><table>'
+        re_start: "{{fptstart|default('<h2>Switch '+swname+'</h2><h3>Fancy Port Tabelle</h3><table>')}}"
         re_end: '</table>'
         page_id: "{{confluence_page}}"
         ignore_whitespace: True
